@@ -2,20 +2,13 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import argparse
-import sys
-import tempfile
-
-# Import urllib
-from six.moves import urllib
 
 import numpy as np
 import pandas as pd
 import tensorflow as tf
 from sklearn import preprocessing
-from tensorflow.contrib.learn.python.learn.estimators import model_fn as model_fn_lib
-import urllib.request
 tf.logging.set_verbosity(tf.logging.INFO)
+
 #Learning rate for the model
 LEARNING_RATE = 0.001
 
