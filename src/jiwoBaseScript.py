@@ -2,17 +2,18 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-
+import sys
 import numpy as np
+import csv
 import pandas as pd
 import tensorflow as tf
 from sklearn import preprocessing
-tf.logging.set_verbosity(tf.logging.INFO)
+#tf.logging.set_verbosity(tf.logging.INFO)
 
 #Learning rate for the model
 LEARNING_RATE = 0.001
 
-#tf.logging.set_verbosity(tf.logging.INFO)
+tf.logging.set_verbosity(tf.logging.INFO)
 
 def main(unused_argv):
     # Load datasets
@@ -23,26 +24,28 @@ def main(unused_argv):
 
     # Remove ID, store it in separate variable in case of test data
     train = train.drop("ID", axis=1)
-    ytest = test["ID"]
-    xtest = test.drop("ID", axis=1)
+    labels = test["ID"]
+    test = test.drop("ID", axis=1)
 
     # Transform categorical data
     for l in categorical:
         ec = preprocessing.LabelEncoder()
-        ec.fit(list(train[l].values) + list(xtest[l].values))
+        ec.fit(list(train[l].values) + list(test[l].values))
         train[l] = ec.transform(list(train[l].values))
-        xtest[l] = ec.transform(list(xtest[l].values))
+        test[l] = ec.transform(list(test[l].values))
         train[l] = train[l].astype(float)
-        xtest[l] = xtest[l].astype(float)
+        test[l] = test[l].astype(float)
 
     ytrain = train["y"].as_matrix()
     train = train.drop("y", axis=1)
 
     xtrain = train.as_matrix()
 
+    xtest = test.as_matrix()
     # Scale data
     scaler = preprocessing.MinMaxScaler()
     xtrain = scaler.fit_transform(xtrain)
+    xtest = scaler.fit_transform(xtest)
 
     # Set model params
     model_params = {"learning_rate": LEARNING_RATE}
@@ -51,31 +54,38 @@ def main(unused_argv):
     nn = tf.contrib.learn.Estimator(
         model_fn=model_fn, params=model_params)
     # Fit
+
+    #Split data
+    #xtest = xtrain[4000:]
+    #ytest = ytrain[4000:]
+    #xtrain = xtrain[:4000]
+    #ytrain = ytrain[:4000]
     nn.fit(x=xtrain, y=ytrain, steps=5000)
 
-    # Score accuracy
-    ev = nn.evaluate(x=xtest, y=ytest, steps=1)
-    loss_score = ev["loss"]
-    print("Loss: %s" % loss_score)
-
     # Print out predictions
-    predictions = nn.predict(x=ytest,
+    predictions = nn.predict(x=xtest,
                              as_iterable=True)
-    for i, p in enumerate(predictions):
-        print("Prediction %s: %s" % (i + 1, p["ages"]))
+    with open('resultsJiwo.csv', 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile, delimiter=',')
+        writer.writerow(["ID", "y"])
+        for i, p in enumerate(predictions):
+            writer.writerow([labels[i], p['y']])
+
 
 def model_fn(features, targets, mode, params):
     """Model function for Estimator."""
 
     # Connect the first hidden layer to input layer
     # (features) with relu activation
-    first_hidden_layer = tf.contrib.layers.relu(features, 10)
+    first_hidden_layer = tf.contrib.layers.relu(features, 385)
 
     # Connect the second hidden layer to first hidden layer with relu
-    second_hidden_layer = tf.contrib.layers.relu(first_hidden_layer, 10)
+    second_hidden_layer = tf.contrib.layers.relu(first_hidden_layer, 50)
+
+    third_hidden_layer = tf.contrib.layers.relu(second_hidden_layer, 10)
 
     # Connect the output layer to second hidden layer (no activation fn)
-    output_layer = tf.contrib.layers.linear(second_hidden_layer, 1)
+    output_layer = tf.contrib.layers.linear(third_hidden_layer, 1)
 
     # Reshape output layer to 1-dim Tensor to return predictions
     predictions = tf.reshape(output_layer, [-1])
