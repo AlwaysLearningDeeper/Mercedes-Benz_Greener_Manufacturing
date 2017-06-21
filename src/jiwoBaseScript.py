@@ -11,7 +11,8 @@ from sklearn import preprocessing
 #tf.logging.set_verbosity(tf.logging.INFO)
 
 #Learning rate for the model
-LEARNING_RATE = 0.001
+LEARNING_RATE = 0.01
+dropout = 0.2
 
 tf.logging.set_verbosity(tf.logging.INFO)
 
@@ -48,7 +49,8 @@ def main(unused_argv):
     xtest = scaler.fit_transform(xtest)
 
     # Set model params
-    model_params = {"learning_rate": LEARNING_RATE}
+    model_params = {"learning_rate": LEARNING_RATE,
+    				"dropout":dropout}
 
     # Build 2 layer fully connected DNN with 10, 10 units respectively.
     nn = tf.contrib.learn.Estimator(
@@ -60,7 +62,7 @@ def main(unused_argv):
     #ytest = ytrain[4000:]
     #xtrain = xtrain[:4000]
     #ytrain = ytrain[:4000]
-    nn.fit(x=xtrain, y=ytrain, steps=5000)
+    nn.fit(x=xtrain, y=ytrain, steps=200000)
 
     # Print out predictions
     predictions = nn.predict(x=xtest,
@@ -79,13 +81,22 @@ def model_fn(features, targets, mode, params):
     # (features) with relu activation
     first_hidden_layer = tf.contrib.layers.relu(features, 385)
 
+    drop_out1 = tf.nn.dropout(first_hidden_layer, params['dropout'])  # DROP-OUT here
     # Connect the second hidden layer to first hidden layer with relu
-    second_hidden_layer = tf.contrib.layers.relu(first_hidden_layer, 50)
+    second_hidden_layer = tf.contrib.layers.relu(drop_out1, 250)
 
-    third_hidden_layer = tf.contrib.layers.relu(second_hidden_layer, 10)
+    drop_out2 = tf.nn.dropout(second_hidden_layer, params['dropout'])
+
+    third_hidden_layer = tf.contrib.layers.relu(drop_out2, 100)
+
+    drop_out3 = tf.nn.dropout(third_hidden_layer, params['dropout'])
+
+    fourth_hidden_layer = tf.contrib.layers.relu(drop_out3, 10)
+
+    drop_out4 = tf.nn.dropout(fourth_hidden_layer, params['dropout'])
 
     # Connect the output layer to second hidden layer (no activation fn)
-    output_layer = tf.contrib.layers.linear(third_hidden_layer, 1)
+    output_layer = tf.contrib.layers.linear(drop_out4, 1)
 
     # Reshape output layer to 1-dim Tensor to return predictions
     predictions = tf.reshape(output_layer, [-1])
