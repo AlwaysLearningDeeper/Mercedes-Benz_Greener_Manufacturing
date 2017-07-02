@@ -63,16 +63,17 @@ def main(unused_argv):
 
     validation_monitor = tf.contrib.learn.monitors.ValidationMonitor(xdev,ydev,early_stopping_metric="loss",
     early_stopping_metric_minimize=True,
-    early_stopping_rounds=100)
+    early_stopping_rounds=50)
 
     nn = tf.contrib.learn.SKCompat(tf.contrib.learn.Estimator(
         model_fn=model_fn, params=model_params,model_dir="./tmp/mercedes_model",
     config=tf.contrib.learn.RunConfig(save_checkpoints_secs=0.25,tf_random_seed=17)))
 
 
+
     # Fit
 
-    nn.fit(x=xtrain, y=ytrain, batch_size = 40,steps=200,monitors=[validation_monitor])
+    nn.fit(x=xtrain, y=ytrain, batch_size = 40,steps=1000,monitors=[validation_monitor])
 
     # Print out predictions
     predictions = nn.predict(x=xtest)["y"]
@@ -90,15 +91,18 @@ def model_fn(features, targets, mode, params):
 
     # Connect the first hidden layer to input layer
     # (features) with relu activation
-    first_hidden_layer = tf.contrib.layers.fully_connected(features,175,activation_fn=tf.nn.relu)
 
-    second_hidden_layer = tf.contrib.layers.fully_connected(first_hidden_layer, 50,activation_fn=tf.nn.relu)
+    regu=tf.contrib.layers.l2_regularizer(0.000001)
 
-    third_hidden_layer = tf.contrib.layers.fully_connected(second_hidden_layer, 5, activation_fn=tf.nn.relu)
+    first_hidden_layer = tf.contrib.layers.fully_connected(features,175,activation_fn=tf.nn.relu,
+                                                           weights_regularizer=regu)
+
+    second_hidden_layer = tf.contrib.layers.fully_connected(first_hidden_layer, 5,activation_fn=tf.nn.relu,
+                                                            weights_regularizer=regu)
 
 
     # Connect the output layer to second hidden layer (no activation fn)
-    output_layer = tf.contrib.layers.linear(third_hidden_layer, 1)
+    output_layer = tf.contrib.layers.linear(second_hidden_layer, 1)
 
     # Reshape output layer to 1-dim Tensor to return predictions
     predictions = tf.reshape(output_layer, [-1])

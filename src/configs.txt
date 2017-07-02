@@ -1,10 +1,10 @@
-ES:100
+ES:100 or ES:50
 Seed=17
 Config [100,50,15] BS=40 FinalL=149, ValidantionL=181 ESBatch=100
 Config [100,25] BS=40  FinalL=42, VL=64
 Config [100,10] BS=40  FinalL=114, VL=68.42 BL=68.32
 Config [250,50] BS=40  FinalL=27 VL=57 BL= 56              s_2 --
-Config [200,50] BS=40  FinalL=28, VL=57 BL=54               s_1
+Config [200,50] BS=40  FinalL=28, VL=57 BL=54               [s_1]
 Config [175,50] BS=40  FinalL=27 VL=58 BL=55              
 Config [150,50] BS=40  FinalL=27, VL=58 BL=55
 Config [200,25] BS=40  FinalL=28 VL=59 BL= 55
@@ -12,8 +12,14 @@ Config [200,15] BS=40  FinalL=28.9 VL=59 BL=56
 Config [200,5] BS=40  FinalL=28.8 VL=58 BL=56             s_3 -
 Config [225,5] BS=40  FinalL=28.4 VL=58 BL=55             Revisit
 Config [250,5] BS=40  FinalL=28.5 VL=58 BL=57             
-Config [175,5] BS=40  FinalL=29 VL=59 BL=57             s_4
+Config [175,5] BS=40  FinalL=29 VL=59 BL=57             [s_4]  -> BR
 Config [150,5] BS=40  FinalL=28.4 VL=58 BL=56                   
 Config [250,100,10] BS=40 FinalL=45 VL=185 BL=58 ??? -> Recheck
 Config [175,25,10] BS=40 FinalL= VL= BL=105
 Config [175,50,5] BS=40 FinalL=184 VL=387 BL=129            Steps:200 s_5 _
+
+[175,5] l2_=0.00001
+ES:50
+28.921
+
+
