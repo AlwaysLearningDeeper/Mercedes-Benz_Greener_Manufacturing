@@ -63,7 +63,7 @@ def main(unused_argv):
 
     validation_monitor = tf.contrib.learn.monitors.ValidationMonitor(xdev,ydev,early_stopping_metric="loss",
     early_stopping_metric_minimize=True,
-    early_stopping_rounds=50)
+    early_stopping_rounds=1000)
 
     nn = tf.contrib.learn.SKCompat(tf.contrib.learn.Estimator(
         model_fn=model_fn, params=model_params,model_dir="./tmp/mercedes_model",
@@ -73,13 +73,13 @@ def main(unused_argv):
 
     # Fit
 
-    nn.fit(x=xtrain, y=ytrain, batch_size = 40,steps=1000,monitors=[validation_monitor])
+    nn.fit(x=xtrain, y=ytrain, batch_size = 40,steps=2200,monitors=[validation_monitor])
 
     # Print out predictions
     predictions = nn.predict(x=xtest)["y"]
 
 
-    with open('resultsJairsan_6.csv', 'w', newline='') as csvfile:
+    with open('resultsJairsan_11.csv', 'w', newline='') as csvfile:
         writer = csv.writer(csvfile, delimiter=',')
         writer.writerow(["ID", "y"])
         for i in range(0,len(predictions)):
@@ -92,17 +92,17 @@ def model_fn(features, targets, mode, params):
     # Connect the first hidden layer to input layer
     # (features) with relu activation
 
-    regu=tf.contrib.layers.l2_regularizer(0.000001)
+    #regu=tf.contrib.layers.l2_regularizer(0.0001)
 
     first_hidden_layer = tf.contrib.layers.fully_connected(features,175,activation_fn=tf.nn.relu,
-                                                           weights_regularizer=regu)
+                                                           )
 
     second_hidden_layer = tf.contrib.layers.fully_connected(first_hidden_layer, 5,activation_fn=tf.nn.relu,
-                                                            weights_regularizer=regu)
-
+                                                            )
+    #weights_regularizer=regu
 
     # Connect the output layer to second hidden layer (no activation fn)
-    output_layer = tf.contrib.layers.linear(second_hidden_layer, 1)
+    output_layer = tf.contrib.layers.linear(second_hidden_layer, 1,)
 
     # Reshape output layer to 1-dim Tensor to return predictions
     predictions = tf.reshape(output_layer, [-1])
